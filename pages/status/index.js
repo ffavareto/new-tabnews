@@ -9,11 +9,8 @@ async function fetchAPI(key) {
 export default function StatusPage() {
   return (
     <>
-      <h1>Status</h1>
       <UpdatedAt />
-      <DatabaseVersion />
-      <MaxConnections />
-      <OpenedConnections />
+      <DatabaseStatus />
     </>
   );
 }
@@ -29,53 +26,38 @@ function UpdatedAt() {
     updatedAtText = new Date(data.updated_at).toLocaleString("pt-BR");
   }
 
-  return <div>Última atualização: {updatedAtText}</div>;
+  return (
+    <>
+      <h1>Status</h1>
+      <div>Última atualização: {updatedAtText}</div>
+    </>
+  );
 }
 
-function DatabaseVersion() {
+function DatabaseStatus() {
   const { isLoading, data } = useSWR("/api/v1/status", fetchAPI, {
     refreshInterval: 2000,
   });
 
-  let databaseVersionText = "Carregando...";
+  let databaseStatusInformation = "Carregando...";
 
   if (!isLoading && data) {
     const { dependencies } = data;
     const { database } = dependencies;
-    databaseVersionText = database.version;
+
+    databaseStatusInformation = (
+      <>
+        <div>Versão: {database.version}</div>
+        <div>Conexões abertas: {database.opened_connections}</div>
+        <div>Conexões máximas: {database.max_connections}</div>
+      </>
+    );
   }
 
-  return <div>Versão do PostgreSQL: {databaseVersionText}</div>;
-}
-
-function MaxConnections() {
-  const { isLoading, data } = useSWR("/api/v1/status", fetchAPI, {
-    refreshInterval: 2000,
-  });
-
-  let maxConnectionsText = "Carregando...";
-
-  if (!isLoading && data) {
-    const { dependencies } = data;
-    const { database } = dependencies;
-    maxConnectionsText = database.max_connections;
-  }
-
-  return <div>Conexões disponíveis: {maxConnectionsText}</div>;
-}
-
-function OpenedConnections() {
-  const { isLoading, data } = useSWR("/api/v1/status", fetchAPI, {
-    refreshInterval: 2000,
-  });
-
-  let openedConnectionsText = "Carregando...";
-
-  if (!isLoading && data) {
-    const { dependencies } = data;
-    const { database } = dependencies;
-    openedConnectionsText = database.opened_connections;
-  }
-
-  return <div>Conexões abertas: {openedConnectionsText}</div>;
+  return (
+    <>
+      <h1>Database</h1>
+      <div>{databaseStatusInformation}</div>
+    </>
+  );
 }
